@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reuniões</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- TELA DE CARREGAMENTO -->
+    <div id="loadingScreen">
+        <div class="loading-content">
+            <img src="Logo Universal.png" class="loading-logo" alt="Universal">
+            <div class="loading-line"></div>
+            <p>Carregando sistema...</p>
+        </div>
+    </div>
+
+    <!-- SISTEMA -->
+    <div id="app" class="hidden">
+
+        <!-- TOPO -->
+        <header class="topbar">
+
+            <div class="logos">
+
+                <img src="Logo Universal.png" class="logo-universal" alt="Universal">
+
+                <div class="logo-separator"></div>
+
+                <img src="Logo Catedral CG.png" class="logo-catedral" alt="Catedral da Fé Campina Grande">
+
+            </div>
+
+            <div class="system-title">
+                Sistema de Reuniões
+            </div>
+
+        </header>
+
+
+        <!-- ========================= -->
+        <!-- TELA INICIAL -->
+        <!-- ========================= -->
+
+        <main id="homeScreen" class="screen">
+
+            <div class="home-container">
+
+                <div class="home-title">
+                    <h1>Bem-vindo</h1>
+                    <p>Selecione uma opção para continuar</p>
+                </div>
+
+                <div class="menu-grid">
+
+                    <button
+                        class="menu-card"
+                        onclick="showScreen('meetingsScreen')"
+                    >
+                        <div class="menu-card-title">
+                            Reuniões
+                        </div>
+
+                        <div class="menu-card-description">
+                            Registrar e acompanhar as reuniões
+                        </div>
+                    </button>
+
+
+                    <button
+                        class="menu-card"
+                        onclick="showScreen('reportsScreen'); generateReport();"
+                    >
+                        <div class="menu-card-title">
+                            Relatórios
+                        </div>
+
+                        <div class="menu-card-description">
+                            Consultar os registros realizados
+                        </div>
+                    </button>
+
+                </div>
+
+            </div>
+
+        </main>
+
+
+        <!-- ========================= -->
+        <!-- TELA DE REUNIÕES -->
+        <!-- ========================= -->
+
+        <main id="meetingsScreen" class="screen hidden">
+
+            <div class="page-header">
+
+                <div>
+                    <button
+                        class="back-button"
+                        onclick="showScreen('homeScreen')"
+                    >
+                        ← Voltar
+                    </button>
+
+                    <h1>Reuniões</h1>
+
+                    <p id="currentDateLabel"></p>
+                </div>
+
+
+                <div class="page-header-actions">
+
+                    <button
+                        class="pastor-button"
+                        onclick="openPastorModal()"
+                    >
+                        + Cadastrar pastor
+                    </button>
+
+                    <button
+                        class="date-button"
+                        onclick="openDatePicker()"
+                    >
+                        📅 Alterar data
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- DATA SELECIONADA -->
+
+            <div class="selected-date">
+
+                <span>Data selecionada</span>
+
+                <strong id="selectedDateText"></strong>
+
+            </div>
+
+
+            <!-- LINHA DO TEMPO -->
+
+            <section class="timeline-container">
+
+                <div class="timeline-header">
+
+                    <h2>Horários das reuniões</h2>
+
+                    <div class="timeline-legend">
+
+                        <span>
+                            <i class="legend-dot green"></i>
+                            Preenchida
+                        </span>
+
+                        <span>
+                            <i class="legend-dot red"></i>
+                            Pendente
+                        </span>
+
+                        <span>
+                            <i class="legend-dot yellow"></i>
+                            Atual
+                        </span>
+
+                        <span>
+                            <i class="legend-dot gray"></i>
+                            Próxima
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div id="timeline" class="timeline"></div>
+
+            </section>
+
+
+            <!-- RESUMO DO DIA -->
+
+            <section class="day-summary">
+
+                <div class="summary-card">
+
+                    <span>Total de reuniões</span>
+
+                    <strong id="totalMeetings">
+                        0 / 6
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-card">
+
+                    <span>Preenchidas</span>
+
+                    <strong id="filledMeetings">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-card">
+
+                    <span>Pendentes</span>
+
+                    <strong id="pendingMeetings">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-card">
+
+                    <span>Total de pessoas</span>
+
+                    <strong id="peopleTotal">
+                        0
+                    </strong>
+
+                </div>
+
+            </section>
+
+        </main>
+
+
+        <!-- ========================= -->
+        <!-- TELA DE RELATÓRIOS -->
+        <!-- ========================= -->
+
+        <main id="reportsScreen" class="screen hidden">
+
+            <div class="page-header">
+
+                <div>
+
+                    <button
+                        class="back-button"
+                        onclick="showScreen('homeScreen')"
+                    >
+                        ← Voltar
+                    </button>
+
+                    <h1>Relatórios</h1>
+
+                    <p>Consulta dos registros de reuniões</p>
+
+                </div>
+
+            </div>
+
+
+            <section class="report-filters">
+
+                <div class="filter-group">
+
+                    <label for="reportStart">
+                        Data inicial
+                    </label>
+
+                    <input
+                        type="date"
+                        id="reportStart"
+                    >
+
+                </div>
+
+
+                <div class="filter-group">
+
+                    <label for="reportEnd">
+                        Data final
+                    </label>
+
+                    <input
+                        type="date"
+                        id="reportEnd"
+                    >
+
+                </div>
+
+
+                <button
+                    class="primary-button"
+                    onclick="generateReport()"
+                >
+                    Consultar
+                </button>
+
+            </section>
+
+
+            <section class="report-cards">
+
+                <div class="report-card">
+
+                    <span>Reuniões registradas</span>
+
+                    <strong id="reportMeetings">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="report-card">
+
+                    <span>Total de pessoas</span>
+
+                    <strong id="reportPeople">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="report-card">
+
+                    <span>Média por reunião</span>
+
+                    <strong id="reportAverage">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="report-card">
+
+                    <span>Dias com registros</span>
+
+                    <strong id="reportDays">
+                        0
+                    </strong>
+
+                </div>
+
+            </section>
+
+
+            <section class="report-table-container">
+
+                <table class="report-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Data</th>
+                            <th>Horário</th>
+                            <th>Pastor</th>
+                            <th>Pessoas</th>
+                            <th>Observações</th>
+                            <th>Ação</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="reportTableBody"></tbody>
+
+                </table>
+
+            </section>
+
+        </main>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- MODAL DE DATA -->
+    <!-- ========================= -->
+
+    <div id="dateModal" class="modal hidden">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h2>Selecionar data</h2>
+
+                <button
+                    class="modal-close"
+                    onclick="closeDatePicker()"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <label for="datePicker">
+                    Escolha a data
+                </label>
+
+                <input
+                    type="date"
+                    id="datePicker"
+                >
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    class="secondary-button"
+                    onclick="closeDatePicker()"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    class="primary-button"
+                    onclick="selectDate()"
+                >
+                    Selecionar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- MODAL DA REUNIÃO -->
+    <!-- ========================= -->
+
+    <div id="meetingModal" class="modal hidden">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2>
+                        Reunião das
+                        <span id="modalMeetingTime"></span>
+                    </h2>
+
+                    <p id="modalMeetingDate"></p>
+
+                </div>
+
+                <button
+                    class="modal-close"
+                    onclick="closeMeetingModal()"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <div class="form-group">
+
+                    <label for="pastor">
+                        Pastor responsável
+                    </label>
+
+                    <select id="pastor"></select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="people">
+                        Quantidade de pessoas
+                    </label>
+
+                    <input
+                        type="number"
+                        id="people"
+                        min="0"
+                        placeholder="Digite a quantidade"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="observations">
+                        Observações
+                    </label>
+
+                    <textarea
+                        id="observations"
+                        rows="4"
+                        placeholder="Digite alguma observação..."
+                    ></textarea>
+
+                </div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    class="secondary-button"
+                    onclick="closeMeetingModal()"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    class="primary-button"
+                    onclick="saveMeeting()"
+                >
+                    Salvar reunião
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- MODAL CADASTRO DE PASTORES -->
+    <!-- ========================= -->
+
+    <div id="pastorModal" class="modal hidden">
+
+        <div class="modal-content pastor-modal-content">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2>Cadastrar pastores</h2>
+
+                    <p>Gerencie a lista de pastores disponíveis.</p>
+
+                </div>
+
+                <button
+                    class="modal-close"
+                    onclick="closePastorModal()"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <div class="pastor-register">
+
+                    <label for="newPastor">
+                        Nome do pastor
+                    </label>
+
+                    <div class="pastor-register-row">
+
+                        <input
+                            type="text"
+                            id="newPastor"
+                            placeholder="Digite o nome do pastor"
+                        >
+
+                        <button
+                            class="primary-button"
+                            onclick="addPastor()"
+                        >
+                            Adicionar
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="pastor-list-title">
+                    Pastores cadastrados
+                </div>
+
+
+                <div
+                    id="pastorList"
+                    class="pastor-list"
+                ></div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    class="secondary-button"
+                    onclick="closePastorModal()"
+                >
+                    Fechar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
