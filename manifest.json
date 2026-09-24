@@ -1,8 +1,9 @@
+```json
 {
   "name": "Sistema de Reuniões",
   "short_name": "Reuniões",
   "description": "Sistema de registro e acompanhamento de reuniões",
-  "start_url": "./",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
@@ -13,13 +14,20 @@
       "src": "icone-app-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "icone-app-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
+```
+
+**Importante:** isso não remove necessariamente a tela de abertura do Android. Essa tela é criada pelo próprio sistema ao iniciar uma PWA. O que estamos fazendo aqui é evitar que o `maskable` influencie essa apresentação.
+
+Depois de substituir o `manifest.json` no GitHub, **não precisa alterar o `index.html` nem o `script.js`**.
+
+Como o aplicativo já está instalado no celular, depois da alteração pode ser necessário **desinstalar o app e instalar novamente** para o Android pegar o novo manifesto.
