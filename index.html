@@ -7,6 +7,23 @@
 
     <title>Sistema de Reuniões</title>
 
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Ícone do aplicativo -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icone-app-192.png">
+
+    <!-- Ícone para iPhone e iPad -->
+    <link rel="apple-touch-icon" href="icone-app-192.png">
+
+    <!-- Cor do aplicativo -->
+    <meta name="theme-color" content="#000000">
+
+    <!-- Configurações para iPhone e iPad -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Reuniões">
+
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -783,6 +800,20 @@
     <!-- ========================= -->
 
     <script src="script.js"></script>
+
+    <script>
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker.register("./service-worker.js")
+                    .then(() => {
+                        console.log("PWA: Service Worker registrado com sucesso.");
+                    })
+                    .catch(error => {
+                        console.error("PWA: Erro ao registrar Service Worker:", error);
+                    });
+            });
+        }
+    </script>
 
 </body>
 
