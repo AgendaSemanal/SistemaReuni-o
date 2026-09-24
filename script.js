@@ -116,8 +116,7 @@ document.addEventListener(
 
 
         /*
-           Mostra o sistema rapidamente
-           usando o cache local.
+           Mostra o sistema rapidamente.
         */
 
         setTimeout(
@@ -315,89 +314,71 @@ async function syncCloudSilently() {
                 );
 
 
+            const timeSinceLocalChange =
+                Date.now() -
+                lastLocalMeetingChange;
+
+
             /*
-               Se a nuvem retornou reuniões,
-               podemos sincronizar normalmente.
+               Aguarda alguns segundos após
+               uma alteração feita pelo sistema
+               para evitar conflito com o envio
+               para o Google Sheets.
             */
 
             if (
-                cloudMeetings.length > 0
+                timeSinceLocalChange >= 5000
             ) {
 
-                const timeSinceLocalChange =
-                    Date.now() -
-                    lastLocalMeetingChange;
-
-
                 /*
-                   Não sobrescreve uma alteração
-                   recém-realizada pelo usuário.
+                   O Google Sheets é a fonte oficial.
+
+                   Se retornar reuniões:
+                   atualiza normalmente.
+
+                   Se retornar []:
+                   meetingsCache também será [].
                 */
 
                 if (
-                    timeSinceLocalChange >= 5000
+                    meetingsSignature !==
+                    lastCloudMeetingsSignature
                 ) {
 
-                    if (
-                        meetingsSignature !==
-                        lastCloudMeetingsSignature
-                    ) {
-
-                        meetingsCache =
-                            cloudMeetings;
+                    meetingsCache =
+                        cloudMeetings;
 
 
-                        saveMeetings(
-                            meetingsCache
-                        );
+                    saveMeetings(
+                        meetingsCache
+                    );
 
-
-                        lastCloudMeetingsSignature =
-                            meetingsSignature;
-
-
-                        renderTimeline();
-
-                        updateSummary();
-
-
-                        const reportsScreen =
-                            document.getElementById(
-                                "reportsScreen"
-                            );
-
-
-                        if (
-                            reportsScreen &&
-                            !reportsScreen.classList.contains(
-                                "hidden"
-                            )
-                        ) {
-
-                            renderReports();
-
-                        }
-
-                    }
-
-                }
-
-            } else {
-
-                /*
-                   PROTEÇÃO PRINCIPAL:
-
-                   Se o Sheets retornar vazio,
-                   NÃO apagamos reuniões que já
-                   existem no sistema.
-                */
-
-                if (
-                    meetingsCache.length === 0
-                ) {
 
                     lastCloudMeetingsSignature =
                         meetingsSignature;
+
+
+                    renderTimeline();
+
+                    updateSummary();
+
+
+                    const reportsScreen =
+                        document.getElementById(
+                            "reportsScreen"
+                        );
+
+
+                    if (
+                        reportsScreen &&
+                        !reportsScreen.classList.contains(
+                            "hidden"
+                        )
+                    ) {
+
+                        renderReports();
+
+                    }
 
                 }
 
@@ -448,8 +429,8 @@ async function syncCloudSilently() {
     } catch (error) {
 
         /*
-           Se a nuvem falhar, NÃO apagamos
-           absolutamente nada da tela.
+           Se a nuvem falhar temporariamente,
+           não altera os dados atuais.
         */
 
         console.warn(
@@ -544,35 +525,26 @@ function createPastorsSignature(
 
 function loadLocalCache() {
 
-    try {
+    /*
+       IMPORTANTE:
 
-        const meetings =
-            JSON.parse(
-                localStorage.getItem(
-                    "reunioes"
-                )
-            );
+       As reuniões NÃO são mais carregadas
+       do localStorage.
+
+       O Google Sheets é a fonte oficial
+       das reuniões.
+
+       Portanto, sempre começamos com
+       o cache de reuniões vazio.
+    */
+
+    meetingsCache = [];
 
 
-        if (
-            Array.isArray(
-                meetings
-            )
-        ) {
-
-            meetingsCache =
-                meetings.map(
-                    normalizeMeeting
-                );
-
-        }
-
-    } catch (error) {
-
-        meetingsCache = [];
-
-    }
-
+    /*
+       Os pastores continuam utilizando
+       o cache local normalmente.
+    */
 
     try {
 
@@ -780,112 +752,24 @@ async function loadCloudData() {
            REUNIÕES
         ===================================== */
 
-        const localMeetings =
-            getMeetings();
-
-
         /*
-           Se o Sheets está vazio e existem
-           dados antigos no navegador,
-           fazemos uma migração única.
+           O GOOGLE SHEETS É A FONTE OFICIAL.
+
+           Não fazemos mais migração de reuniões
+           antigas do localStorage.
+
+           Se o Sheets tiver 10 reuniões,
+           o sistema terá 10.
+
+           Se o Sheets tiver 1 reunião,
+           o sistema terá 1.
+
+           Se o Sheets estiver vazio,
+           o sistema ficará vazio.
         */
 
-        if (
-            cloudMeetings.length === 0 &&
-            localMeetings.length > 0
-        ) {
-
-            for (
-                const meeting
-                of localMeetings
-            ) {
-
-                try {
-
-                    const normalized =
-                        normalizeMeeting(
-                            meeting
-                        );
-
-
-                    await apiPost({
-
-                        action:
-                            "saveMeeting",
-
-                        id:
-                            normalized.id,
-
-                        date:
-                            normalized.date,
-
-                        day:
-                            getWeekdayName(
-                                normalized.date
-                            ),
-
-                        time:
-                            normalized.time,
-
-                        people:
-                            normalized.people,
-
-                        pastor:
-                            normalized.pastor,
-
-                        observations:
-                            normalized.observations
-
-                    });
-
-                } catch (error) {
-
-                    console.warn(
-                        "Não foi possível migrar reunião:",
-                        meeting,
-                        error
-                    );
-
-                }
-
-            }
-
-
-            /*
-               Busca novamente depois
-               da migração.
-            */
-
-            const refreshed =
-                await apiGet(
-                    "getMeetings"
-                );
-
-
-            if (
-                Array.isArray(
-                    refreshed.meetings
-                )
-            ) {
-
-                meetingsCache =
-                    refreshed.meetings.map(
-                        normalizeMeeting
-                    );
-
-            }
-
-        } else {
-
-            /*
-               A partir daqui o Sheets
-               é a fonte oficial.
-            */
-
-            meetingsCache =
-                cloudMeetings;
-
-        }
+        meetingsCache =
+            cloudMeetings;
 
 
         lastCloudMeetingsSignature =
@@ -893,6 +777,12 @@ async function loadCloudData() {
                 meetingsCache
             );
 
+
+        /*
+           Mantém somente em memória.
+
+           NÃO salva reuniões no localStorage.
+        */
 
         saveMeetings(
             meetingsCache
@@ -1023,8 +913,11 @@ async function loadCloudData() {
 
 
         /*
-           Mantém o cache local se o Sheets
-           estiver temporariamente indisponível.
+           O sistema não tenta recriar reuniões
+           antigas do localStorage.
+
+           Se o Sheets estiver indisponível,
+           mantém apenas o estado atual em memória.
         */
 
         cloudInitialized = true;
@@ -2145,6 +2038,17 @@ function saveMeetings(
     meetings
 ) {
 
+    /*
+       IMPORTANTE:
+
+       As reuniões NÃO são mais salvas
+       no localStorage.
+
+       Elas ficam somente em memória.
+
+       O Google Sheets é a fonte oficial.
+    */
+
     meetingsCache =
         Array.isArray(
             meetings
@@ -2153,17 +2057,6 @@ function saveMeetings(
                 normalizeMeeting
             )
             : [];
-
-
-    localStorage.setItem(
-
-        "reunioes",
-
-        JSON.stringify(
-            meetingsCache
-        )
-
-    );
 
 }
 
@@ -3058,27 +2951,36 @@ async function refreshMeetingsFromCloud() {
             );
 
 
+        const meetingsSignature =
+            createMeetingsSignature(
+                cloudMeetings
+            );
+
+
+        const timeSinceLocalChange =
+            Date.now() -
+            lastLocalMeetingChange;
+
+
         /*
-           Se o Sheets retornar reuniões,
-           sincroniza normalmente.
+           Aguarda alguns segundos após
+           uma alteração feita pelo sistema.
         */
 
         if (
-            cloudMeetings.length > 0
+            timeSinceLocalChange >= 5000
         ) {
 
-            const timeSinceLocalChange =
-                Date.now() -
-                lastLocalMeetingChange;
-
-
             /*
-               Evita sobrescrever uma alteração
-               recém-realizada.
+               O Google Sheets é a fonte oficial.
+
+               Se retornar [] também substitui
+               o cache por [].
             */
 
             if (
-                timeSinceLocalChange >= 5000
+                meetingsSignature !==
+                lastCloudMeetingsSignature
             ) {
 
                 meetingsCache =
@@ -3091,53 +2993,34 @@ async function refreshMeetingsFromCloud() {
 
 
                 lastCloudMeetingsSignature =
-                    createMeetingsSignature(
-                        cloudMeetings
-                    );
+                    meetingsSignature;
 
 
                 renderTimeline();
 
                 updateSummary();
 
+
+                const reportsScreen =
+                    document.getElementById(
+                        "reportsScreen"
+                    );
+
+
+                if (
+                    reportsScreen &&
+                    !reportsScreen.classList.contains(
+                        "hidden"
+                    )
+                ) {
+
+                    renderReports();
+
+                }
+
             }
 
-
-            return true;
-
         }
-
-
-        /*
-           =====================================
-           PROTEÇÃO CONTRA RESPOSTA VAZIA
-           =====================================
-
-           Se já temos reuniões no sistema,
-           NÃO substituímos por [].
-        */
-
-        if (
-            meetingsCache.length > 0
-        ) {
-
-            console.warn(
-                "Google Sheets retornou vazio. Os dados atuais foram preservados."
-            );
-
-
-            return true;
-
-        }
-
-
-        /*
-           Só aceita lista vazia quando
-           o sistema realmente já está vazio.
-        */
-
-        lastCloudMeetingsSignature =
-            "";
 
 
         return true;
@@ -3152,8 +3035,8 @@ async function refreshMeetingsFromCloud() {
 
 
         /*
-           Em caso de erro, mantém os dados
-           atuais da tela.
+           Em caso de erro de conexão,
+           mantém os dados atuais.
         */
 
         return false;
